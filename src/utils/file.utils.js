@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import { CONFIG_DIR } from "./constants.js";
 import path from "path";
+import axios from "axios";
 
 export const getSettingsFile = async () => {
   try {
@@ -32,7 +33,29 @@ export const saveApiKey = async (apiKey) => {
   );
 };
 
-export const getApikey = async () => { 
-    const settings = await getSettingsFile();
-    return settings.apiKey || null;
+export const getApikey = async () => {
+  const settings = await getSettingsFile();
+  const apiKey = settings.apiKey || null;
+
+  if (!apiKey) {
+    return {
+      error: "Api key not found",
+    };
+  }
+
+  try {
+    const response = await axios.get("https://api.groq.com/openai/v1/models", {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    return {
+      apiKey,
+    };
+  } catch (error) {
+    return {
+      error: "Invalid or expired API key",
+    };
+  }
 };
