@@ -1,6 +1,7 @@
 import { ChatGroq } from "@langchain/groq";
-import { getApikey } from "../utils/file.utils.js";
+import { getApikey } from "../../utils/file.utils.js";
 import { AIMessage } from "langchain";
+import { upsertFilesTool } from "../tools/files.tools.js";
 
 export async function LLMNode(state) {
   const model = new ChatGroq({
@@ -8,22 +9,22 @@ export async function LLMNode(state) {
     apiKey: (await getApikey()).apiKey,
   });
 
-  const stream = await model.stream(state.messages);
+  const modelWithTools = model.bindTools([upsertFilesTool]);
+
+  const stream = await modelWithTools.stream(state.messages);
 
   process.stdout.write("AI : ");
 
   let aiMessage = "";
   for await (const chunk of stream) {
     process.stdout.write(chunk.text);
+    console.log(chunk);
     aiMessage += chunk.text;
   }
 
   process.stdout.write("\n");
 
   return {
-    messages:[
-        ...state.messages,
-        new AIMessage(aiMessage)
-    ]
+    messages: [...state.messages, new AIMessage(aiMessage)],
   };
 }
