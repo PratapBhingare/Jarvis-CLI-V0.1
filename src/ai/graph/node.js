@@ -15,11 +15,11 @@ export async function LLMNode(state) {
 
   process.stdout.write("AI : ");
 
-  let aiMessage = "";
+  let aiMessage = null;
   for await (const chunk of stream) {
     process.stdout.write(chunk.text);
-    console.log(chunk);
-    aiMessage += chunk.text;
+    if(!aiMessage) aiMessage = chunk;
+    else aiMessage = aiMessage.concat(chunk);
   }
 
   process.stdout.write("\n");
