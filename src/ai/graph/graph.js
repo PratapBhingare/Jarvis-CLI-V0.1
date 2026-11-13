@@ -1,7 +1,7 @@
 import rl from "../../utils/readline.js";
 import { START, END, StateGraph } from "@langchain/langgraph";
 import * as z from "zod";
-import { LLMNode } from "./node.js";
+import { LLMNode, ToolNode } from "./node.js";
 import { HumanMessage, SystemMessage } from "langchain";
 
 const stateFormat = z.object({
@@ -10,8 +10,21 @@ const stateFormat = z.object({
 
 const graph = new StateGraph(stateFormat)
   .addNode("LLMNode", LLMNode)
+  .addNode("ToolNode", ToolNode)
   .addEdge(START, "LLMNode")
-  .addEdge("LLMNode", END)
+  .addConditionalEdges(
+    "LLMNode",
+    (state) => {
+      const lastMessage = state.messages[state.messages.length - 1];
+
+      if (lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
+        return "ToolNode";
+      }
+
+      return "__end__";
+    },
+    ["ToolNode", "__end__"]
+  )
   .compile();
 
 export default async function initGraph() {
@@ -27,8 +40,8 @@ export default async function initGraph() {
   while (true) {
     const userInput = await rl.question("User : ");
 
-    if(userInput.toLowerCase() === "/bye"){
-        break;
+    if (userInput.toLowerCase() === "/bye") {
+      break;
     }
 
     messages.push(new HumanMessage(userInput));

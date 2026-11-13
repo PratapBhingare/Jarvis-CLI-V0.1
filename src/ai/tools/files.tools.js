@@ -1,10 +1,10 @@
 import { tool } from "langchain";
 import * as z from "zod";
-import fs from "fs";
+import fs from "fs/promises";
 
 export const upsertFilesTool = tool(
   async function ({ files }) {
-    await Promise.call(
+    await Promise.all(
       files.map(async (file) => {
         return await fs.writeFile(file.path, file.content);
       })
@@ -12,7 +12,7 @@ export const upsertFilesTool = tool(
     return "File created successfully";
   },
   {
-    name: "upsertFiles",
+    name: "upsertFilesTool",
     description:
       "create/update multiple files at once (create one if not existed)",
     schema: z.object({
