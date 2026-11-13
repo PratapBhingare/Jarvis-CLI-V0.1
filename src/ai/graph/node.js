@@ -85,6 +85,6 @@ export async function ToolNode(state, config) {
   }
 
   return {
-    messages: [...state.messages, ...toolResult],
+    messages: [...state.messages, ...toolResults],
   };
 }
