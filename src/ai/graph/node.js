@@ -1,5 +1,6 @@
 import { ChatGroq } from "@langchain/groq";
 import { getApikey } from "../../utils/file.utils.js";
+import rl from "../../utils/readline.js"; 
 import { AIMessage } from "langchain";
 import { upsertFilesTool, readFiles, listFiles } from "../tools/files.tools.js";
 import * as fileTools from "../tools/files.tools.js";
