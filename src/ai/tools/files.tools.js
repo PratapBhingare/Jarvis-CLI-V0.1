@@ -30,6 +30,35 @@ export const upsertFilesTool = tool(
   }
 );
 
+export const listFiles = tool(
+  async function ({ folder }) {
+    const result = [];
+    async function traverse(currentFolder) {
+      const entries = await fs.readdir(currentFolder, { withFileTypes: true }); 
+      for (const entry of entries) {
+        const fullpath = `${currentFolder}/${entry.name}`;
+        if (entry.isDirectory()) {
+          if (entry.name == "node_modules") continue;
+          await traverse(fullpath);
+        } else {
+          result.push(fullpath);
+        }
+      }
+    }
+
+    await traverse(folder);
+    return JSON.stringify(result);
+  },
+  {
+    name: "listFiles",
+    description:
+      "list all the folders (recursively) and files in the current folder (ignores folders like node_modules)",
+    schema: z.object({
+      folder: z.string().describe("absoulte path of the folder to ist"),
+    }),
+  }
+);
+
 export const readFiles = tool(
   async function ({ files }) {
     const results = await Promise.all(
